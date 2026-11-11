@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import random
 
 def load_dataset(path: str) -> pd.DataFrame:
     """
@@ -41,7 +42,7 @@ def calc_var(df : pd.DataFrame) -> float:
     print(mean)
     for _km in df['km']:
         total += (_km - mean)**2
-    n = df["km"].to_numpy().sum()
+    n = len(df)
     var = total*(1/n)
     print(var)
     return var
@@ -53,19 +54,35 @@ def calc_covar(df : pd.DataFrame) -> float:
     mean_x = df['km'].mean()
     mean_y = df['price'].mean()
 
-    total = 0
+    total = 0.0
 
     for _km, _price in zip(df["km"], df["price"]):
         total += (_km - mean_x)*(_price - mean_y)
 
-    n = df["km"].to_numpy().sum()
-    covar = total * (1 / (n))
+    n = len(df)
+    co_var = total * (1 / (n))
     print(total)
-    return total
+    return co_var
 
-        
+#  slope ---> Theta1 (How Much the price decresse on each Added Km) ---  = Cov_var(X,Y) / Var(X)
+def calc_slope(co_var: float, var: float) -> float:
+    """
+    """
+    return co_var / var
+
+# inteceot ---> Theta0 = initPrice (the Price When X=0 OR the price of the Car when Km=0)
+def calc_intercept(slope : float) -> float:
+    """
+    """
+    index = random.choice(df.index)
+    # p = inter + slope X
+    inter = df.loc[index, 'price'] - (slope * df.loc[index, 'km'])
+    return inter
 
 if __name__ == "__main__":
     df = load_dataset("./data.csv")
     var = calc_var(df)
     co_var = calc_covar(df)
+    slope = calc_slope(co_var=co_var, var=var)
+    inter = calc_intercept(slope)
+    print(f"Slope:{slope},intercept:{inter}") 

@@ -1,34 +1,3 @@
-import pandas as pd
-import os
-
-
-def load_dataset(path: str) -> pd.DataFrame:
-    """
-    Load the car dataset from a CSV file.
-
-    Args:
-        path (str): Path to a non-empty .csv file with the columns
-            'km' (mileage) and 'price'.
-
-    Returns:
-        pd.DataFrame: The dataset, or None if the file could not be read
-            (an error message is printed in that case).
-    """
-    assert isinstance(path, str), "Path should be str"
-    assert path.endswith(".csv"), "Path should be in Csv format"
-    assert len(path) > 0, "Path shouldn't be empty"
-    try:
-        df = pd.read_csv(path)
-        return df
-    except FileNotFoundError:
-        print(f"Error: the file '{path}' was not found. Check the path.")
-    except pd.errors.EmptyDataError:
-        print(f"Error: the file '{path}' is empty.")
-    except ValueError as e:
-        print(f"Error: the file '{path}' has an invalid format ({e}).")
-    except Exception as e:
-        print(f"Unexpected error while loading '{path}': {e}")
-
 
 def pp_price(
         mileage: int, 
@@ -63,5 +32,4 @@ if __name__ == "__main__":
     if mileage < 0:
         print("Error: mileage cannot be negative.")
         raise SystemExit(1)
-    # load_dataset("./data.csv")
     pp_price(mileage, 0, 0)

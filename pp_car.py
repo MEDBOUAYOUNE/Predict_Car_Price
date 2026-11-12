@@ -1,6 +1,34 @@
+import json
+
+
+def load_thetas(path: str = "thetas.json") -> tuple[float, float]:
+    """
+    Read the trained intercept (theta0) and slope (theta1) from a JSON file.
+
+    If the file does not exist (the model has not been trained yet), both
+    values are 0, as required before training.
+
+    Args:
+        path (str): Path to the JSON file written by the training program.
+
+    Returns:
+        tuple[float, float]: (intercept, slope).
+    """
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        return float(data["intercept"]), float(data["slope"])
+    except FileNotFoundError:
+        print(f"Warning: '{path}' not found, the model is not trained. "
+              "Using intercept = 0 and slope = 0.")
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        print(f"Error: '{path}' is invalid. "
+              "Using intercept = 0 and slope = 0.")
+    return 0.0, 0.0
+
 
 def pp_price(
-        mileage: int, 
+        mileage: int,
         intercept: float = 0,
         slope: float = 0
         ) -> float:
@@ -19,9 +47,8 @@ def pp_price(
     Returns:
         float: Predicted price.
     """
-    estimated_price = intercept + (slope * mileage)
-    # print(estimated_price)
-    return estimated_price
+    return intercept + (slope * mileage)
+
 
 if __name__ == "__main__":
     try:
@@ -32,4 +59,5 @@ if __name__ == "__main__":
     if mileage < 0:
         print("Error: mileage cannot be negative.")
         raise SystemExit(1)
-    pp_price(mileage, 0, 0)
+    intercept, slope = load_thetas()
+    print(f"Estimated price: {pp_price(mileage, intercept, slope):.2f}")

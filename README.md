@@ -145,11 +145,11 @@ The top-level scripts stay thin: they connect the pieces and handle input and ou
 Requires **Python 3.10 or newer**.
 
 ```bash
-git clone <your-repo-url>
+git clone <repo-url>
 cd Predict_Car_Price
 
 python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+source .venv/bin/activate        
 pip install -r requirements.txt
 ```
 

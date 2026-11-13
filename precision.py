@@ -1,195 +1,17 @@
-import math
-
-import numpy as np
 import pandas as pd
 
-from gradient_descent import gradient_descent
-from pp_car import pp_price
-
-
-def load_dataset(path: str) -> pd.DataFrame:
-    """
-    Load the car dataset from a CSV file.
-
-    Args:
-        path (str): Path to a non-empty .csv file with the columns
-            'km' (mileage) and 'price'.
-
-    Returns:
-        pd.DataFrame: The dataset, or None if the file could not be read
-            (an error message is printed in that case).
-    """
-    assert isinstance(path, str), "Path should be str"
-    assert path.endswith(".csv"), "Path should be in Csv format"
-    assert len(path) > 0, "Path shouldn't be empty"
-    try:
-        return pd.read_csv(path)
-    except FileNotFoundError:
-        print(f"Error: the file '{path}' was not found. Check the path.")
-    except pd.errors.EmptyDataError:
-        print(f"Error: the file '{path}' is empty.")
-    except ValueError as e:
-        print(f"Error: the file '{path}' has an invalid format ({e}).")
-    except Exception as e:
-        print(f"Unexpected error while loading '{path}': {e}")
-
-
-def train_test_split(
-        x: np.ndarray,
-        y: np.ndarray,
-        test_size: float = 0.2,
-        random_state: int = 42
-        ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Shuffle the data and split it into a training and a test set.
-
-    Args:
-        x (np.ndarray): Feature values (mileage).
-        y (np.ndarray): Target values (price).
-        test_size (float): Fraction of the data used for the test set,
-            strictly between 0 and 1.
-        random_state (int): Seed, so the split is reproducible.
-
-    Returns:
-        tuple: (x_train, x_test, y_train, y_test).
-    """
-    assert len(x) == len(y), "x and y should have the same length"
-    assert 0 < test_size < 1, "test_size should be between 0 and 1"
-    indexes = np.random.default_rng(random_state).permutation(len(x))
-    n_test = math.ceil(len(x) * test_size)
-    test_idx, train_idx = indexes[:n_test], indexes[n_test:]
-    return x[train_idx], x[test_idx], y[train_idx], y[test_idx]
-
-
-def mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Compute the mean absolute error (MAE).
-
-    MAE = (1/m) * sum(|y_true_i - y_pred_i|)
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-
-    Returns:
-        float: Average size of the error, in the same unit as the price.
-    """
-    return float(np.mean(np.abs(y_true - y_pred)))
-
-
-def mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Compute the mean squared error (MSE).
-
-    MSE = (1/m) * sum((y_true_i - y_pred_i)^2)
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-
-    Returns:
-        float: Average squared error.
-    """
-    return float(np.mean((y_true - y_pred) ** 2))
-
-
-def root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Compute the root mean squared error (RMSE).
-
-    RMSE = sqrt(MSE). It penalizes large errors more than the MAE.
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-
-    Returns:
-        float: RMSE, in the same unit as the price.
-    """
-    return math.sqrt(mean_squared_error(y_true, y_pred))
-
-
-def r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Compute the coefficient of determination (R2).
-
-    R2 = 1 - SS_res / SS_tot, where
-        SS_res = sum((y_true_i - y_pred_i)^2)
-        SS_tot = sum((y_true_i - mean(y_true))^2)
-
-    1 is a perfect fit, 0 is no better than always predicting the mean,
-    and a negative value is worse than that.
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-
-    Returns:
-        float: The R2 score.
-    """
-    ss_res = np.sum((y_true - y_pred) ** 2)
-    ss_tot = np.sum((y_true - y_true.mean()) ** 2)
-    return float(1 - ss_res / ss_tot)
-
-
-def mean_absolute_percentage_error(
-        y_true: np.ndarray,
-        y_pred: np.ndarray
-        ) -> float:
-    """
-    Compute the mean absolute percentage error (MAPE).
-
-    MAPE = (100/m) * sum(|y_true_i - y_pred_i| / |y_true_i|)
-
-    Args:
-        y_true (np.ndarray): Actual prices (none of them should be 0).
-        y_pred (np.ndarray): Predicted prices.
-
-    Returns:
-        float: Average error as a percentage of the real price.
-    """
-    assert np.all(y_true != 0), "y_true should not contain 0"
-    return float(np.mean(np.abs((y_true - y_pred) / y_true)) * 100)
-
-
-def precision_rate(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Compute the precision rate of the model as a percentage.
-
-    precision rate = 100 - MAPE (never below 0).
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-
-    Returns:
-        float: Precision rate, between 0 and 100.
-    """
-    return max(0.0, 100 - mean_absolute_percentage_error(y_true, y_pred))
-
-
-def within_tolerance_rate(
-        y_true: np.ndarray,
-        y_pred: np.ndarray,
-        tolerance: float = 0.10
-        ) -> float:
-    """
-    Compute the share of predictions close enough to the real price.
-
-    A prediction counts as correct when
-    |y_true_i - y_pred_i| <= tolerance * |y_true_i|.
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-        tolerance (float): Allowed error as a fraction of the real price
-            (0.10 means 10%).
-
-    Returns:
-        float: Percentage of predictions within the tolerance.
-    """
-    hits = np.abs(y_true - y_pred) <= tolerance * np.abs(y_true)
-    return float(np.mean(hits) * 100)
+from carprice.config import DATA_PATH
+from carprice.data import load_dataset, train_test_split
+from carprice.gradient import gradient_descent
+from carprice.metrics import (
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    precision_rate,
+    r2_score,
+    root_mean_squared_error,
+    within_tolerance_rate,
+)
+from carprice.model import pp_price
 
 
 def evaluate(df: pd.DataFrame) -> None:
@@ -220,7 +42,7 @@ def evaluate(df: pd.DataFrame) -> None:
 
 
 if __name__ == "__main__":
-    df = load_dataset("./data.csv")
+    df = load_dataset(DATA_PATH)
     if df is None:
         raise SystemExit(1)
     evaluate(df)

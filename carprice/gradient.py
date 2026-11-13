@@ -1,34 +1,8 @@
+"""Gradient descent for the linear regression."""
+
 import numpy as np
-import pandas as pd
-import json
 
-
-def load_dataset(path: str) -> pd.DataFrame:
-    """
-    Load the car dataset from a CSV file.
-
-    Args:
-        path (str): Path to a non-empty .csv file with the columns
-            'km' (mileage) and 'price'.
-
-    Returns:
-        pd.DataFrame: The dataset, or None if the file could not be read
-            (an error message is printed in that case).
-    """
-    assert isinstance(path, str), "Path should be str"
-    assert path.endswith(".csv"), "Path should be in Csv format"
-    assert len(path) > 0, "Path shouldn't be empty"
-    try:
-        df = pd.read_csv(path)
-        return df
-    except FileNotFoundError:
-        print(f"Error: the file '{path}' was not found. Check the path.")
-    except pd.errors.EmptyDataError:
-        print(f"Error: the file '{path}' is empty.")
-    except ValueError as e:
-        print(f"Error: the file '{path}' has an invalid format ({e}).")
-    except Exception as e:
-        print(f"Unexpected error while loading '{path}': {e}")
+from carprice.config import DEFAULT_ITERATIONS, DEFAULT_LEARNING_RATE
 
 
 def calc_predictions(x: np.ndarray, theta0: float, theta1: float) -> np.ndarray:
@@ -89,8 +63,8 @@ def calc_gradients(errors: np.ndarray, x: np.ndarray) -> tuple[float, float]:
 def gradient_descent(
         km: np.ndarray,
         price: np.ndarray,
-        learning_rate: float = 0.1,
-        iterations: int = 1000
+        learning_rate: float = DEFAULT_LEARNING_RATE,
+        iterations: int = DEFAULT_ITERATIONS
         ) -> tuple[float, float]:
     """
     Find theta0 (intercept) and theta1 (slope) with gradient descent.
@@ -121,35 +95,9 @@ def gradient_descent(
 
         tmp0 = learning_rate * gradient0
         tmp1 = learning_rate * gradient1
-        # print(f"Thtea0:{theta0}-----Theta1:{theta1}")
         theta0 -= tmp0
         theta1 -= tmp1
 
     theta1_real = theta1 / (km_max - km_min)
     theta0_real = theta0 - theta1_real * km_min
     return theta0_real, theta1_real
-
-
-def save_thetas(theta0: float, theta1: float, path: str = "thetas.json") -> None:
-    """
-    Save the trained parameters to a JSON file for the prediction program.
-
-    Args:
-        theta0 (float): Intercept.
-        theta1 (float): Slope.
-        path (str): Destination file.
-    """
-    with open(path, "w") as f:
-        json.dump({"intercept": theta0, "slope": theta1}, f)
-
-
-if __name__ == "__main__":
-    df = load_dataset("./data.csv")
-    if df is None:
-        raise SystemExit(1)
-    theta0, theta1 = gradient_descent(
-        df["km"].to_numpy(dtype=float),
-        df["price"].to_numpy(dtype=float),
-    )
-    save_thetas(theta0, theta1)
-    print(f"Intercept (theta0): {theta0}, slope (theta1): {theta1}")

@@ -1,32 +1,12 @@
+"""Closed-form least-squares check for the car price model.
+
+This is NOT the training method. It computes the exact slope and
+intercept with the variance / covariance formulas so the result of
+gradient descent can be compared against it.
+"""
+
 import numpy as np
 import pandas as pd
-
-
-def load_dataset(path: str) -> pd.DataFrame:
-    """
-    Load the car dataset from a CSV file.
-
-    Args:
-        path (str): Path to a non-empty .csv file with the columns
-            'km' (mileage) and 'price'.
-
-    Returns:
-        pd.DataFrame: The dataset, or None if the file could not be read
-            (an error message is printed in that case).
-    """
-    assert isinstance(path, str), "Path should be str"
-    assert path.endswith(".csv"), "Path should be in Csv format"
-    assert len(path) > 0, "Path shouldn't be empty"
-    try:
-        return pd.read_csv(path)
-    except FileNotFoundError:
-        print(f"Error: the file '{path}' was not found. Check the path.")
-    except pd.errors.EmptyDataError:
-        print(f"Error: the file '{path}' is empty.")
-    except ValueError as e:
-        print(f"Error: the file '{path}' has an invalid format ({e}).")
-    except Exception as e:
-        print(f"Unexpected error while loading '{path}': {e}")
 
 
 def calc_var(df: pd.DataFrame) -> float:
@@ -93,14 +73,3 @@ def calc_intercept(df: pd.DataFrame, slope: float) -> float:
         float: The intercept.
     """
     return df["price"].mean() - slope * df["km"].mean()
-
-
-if __name__ == "__main__":
-    df = load_dataset("./data.csv")
-    if df is None:
-        raise SystemExit(1)
-    var = calc_var(df)
-    co_var = calc_covar(df)
-    slope = calc_slope(co_var=co_var, var=var)
-    intercept = calc_intercept(df, slope)
-    print(f"Slope: {slope}, intercept: {intercept}")

@@ -1,7 +1,11 @@
+"""The linear model: prediction, and saving / loading its parameters."""
+
 import json
 
+from carprice.config import THETAS_PATH
 
-def load_thetas(path: str = "thetas.json") -> tuple[float, float]:
+
+def load_thetas(path: str = THETAS_PATH) -> tuple[float, float]:
     """
     Read the trained intercept (theta0) and slope (theta1) from a JSON file.
 
@@ -27,6 +31,19 @@ def load_thetas(path: str = "thetas.json") -> tuple[float, float]:
     return 0.0, 0.0
 
 
+def save_thetas(theta0: float, theta1: float, path: str = THETAS_PATH) -> None:
+    """
+    Save the trained parameters to a JSON file for the prediction program.
+
+    Args:
+        theta0 (float): Intercept.
+        theta1 (float): Slope.
+        path (str): Destination file.
+    """
+    with open(path, "w") as f:
+        json.dump({"intercept": theta0, "slope": theta1}, f)
+
+
 def pp_price(
         mileage: int,
         intercept: float = 0,
@@ -48,16 +65,3 @@ def pp_price(
         float: Predicted price.
     """
     return intercept + (slope * mileage)
-
-
-if __name__ == "__main__":
-    try:
-        mileage = int(input("Enter the car mileage in km (whole number, e.g. 85000): "))
-    except ValueError:
-        print("Error: invalid mileage. Please enter a whole number like 85000.")
-        raise SystemExit(1)
-    if mileage < 0:
-        print("Error: mileage cannot be negative.")
-        raise SystemExit(1)
-    intercept, slope = load_thetas()
-    print(f"Estimated price: {pp_price(mileage, intercept, slope):.2f}")

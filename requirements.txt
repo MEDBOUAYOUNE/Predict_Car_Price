@@ -1,0 +1,4 @@
+# Python 3.10 or newer is required (the code uses the "float | None" syntax).
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7

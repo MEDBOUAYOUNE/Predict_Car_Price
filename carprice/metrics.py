@@ -110,27 +110,3 @@ def precision_rate(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         float: Precision rate, between 0 and 100.
     """
     return max(0.0, 100 - mean_absolute_percentage_error(y_true, y_pred))
-
-
-def within_tolerance_rate(
-        y_true: np.ndarray,
-        y_pred: np.ndarray,
-        tolerance: float = 0.10
-        ) -> float:
-    """
-    Compute the share of predictions close enough to the real price.
-
-    A prediction counts as correct when
-    |y_true_i - y_pred_i| <= tolerance * |y_true_i|.
-
-    Args:
-        y_true (np.ndarray): Actual prices.
-        y_pred (np.ndarray): Predicted prices.
-        tolerance (float): Allowed error as a fraction of the real price
-            (0.10 means 10%).
-
-    Returns:
-        float: Percentage of predictions within the tolerance.
-    """
-    hits = np.abs(y_true - y_pred) <= tolerance * np.abs(y_true)
-    return float(np.mean(hits) * 100)

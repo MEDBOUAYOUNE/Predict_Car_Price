@@ -125,7 +125,7 @@ Predict_Car_Price/
 ├── predict.py            ▶ program 1: mileage in, price out
 ├── plot.py               📈 scatter of the data + the regression line
 ├── precision.py          🎯 train / test split and precision metrics
-├── ols_check.py          ✅ closed-form cross-check of the result
+├── ols_check.py          ✅ closed-form cross-check of the result 
 │
 └── carprice/             shared code (no duplication)
     ├── config.py         file paths and default learning rate / iterations
